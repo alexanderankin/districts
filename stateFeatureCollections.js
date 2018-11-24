@@ -18,15 +18,16 @@ var fiftys = states.filter(function (state) {
   } catch (e) { return false; }
 });
 
-console.log("Found", fiftys.length, "states to process.");
+console.log("Found", fiftys.length, "states' w/ Upper + Lower houses.");
 
-function compressRegion(region) {
+function compressRegion(region, places) {
+  places = places || 3;
   var g_ = region.geometry;
   if (g_.type.toLowerCase() === 'polygon') {
     g_.coordinates = g_.coordinates.map(function (polygon) {
       polygon.map(function (point) {
-        point[0] = parseFloat(point[0].toFixed(3));
-        point[1] = parseFloat(point[1].toFixed(3));
+        point[0] = parseFloat(point[0].toFixed(places));
+        point[1] = parseFloat(point[1].toFixed(places));
       });
       return polygon.filter((el, i, a) => (i % 2 === 0));
     });
@@ -34,8 +35,8 @@ function compressRegion(region) {
     g_.coordinates = g_.coordinates.map(function (mpolygon) {
       mpolygon.map(function (polygon) {
         polygon.map(function (point) {
-          point[0] = parseFloat(point[0].toFixed(3));
-          point[1] = parseFloat(point[1].toFixed(3));
+          point[0] = parseFloat(point[0].toFixed(places));
+          point[1] = parseFloat(point[1].toFixed(places));
         });
       });
       return mpolygon.filter((el, i, a) => (i % 2 === 0));
@@ -76,3 +77,36 @@ fiftys.forEach(function (state) {
   console.log("Processing state", state);
   reduceState(state);
 });
+
+console.log("Done processing State-level regions");
+
+var cdsDir = pj(__dirname, 'cds', '2016');
+var districtFolders = fs.readdirSync(cdsDir).filter(f => {
+  try { return fs.statSync(pj(cdsDir, f)).isDirectory(); }
+  catch (e) { return false; }
+});
+var states = districtFolders.map(d => d.substr(0, 2));
+states = states.filter((state, pos) => (states.indexOf(state) === pos));
+
+function combineStateCDs(state) {
+  var stateCDs = districtFolders.filter(d => d.startsWith(state));
+  var stateGeoJSON = stateCDs.map(function (cd) {
+    var region = fs.readFileSync(pj(cdsDir, cd, 'shape.geojson'), 'utf-8');
+    var regionJSON = JSON.parse(region);
+    regionJSON = compressRegion(regionJSON, 5);
+    return regionJSON;
+  }).reduce(function (stateGeoJSON, region) {
+    stateGeoJSON.features.push(region);
+    return stateGeoJSON;
+  }, { type: 'FeatureCollection', features: [] });
+
+  var dest = pj(cdsDir, state + '.geojson');
+  fs.writeFileSync(dest, JSON.stringify(stateGeoJSON));
+}
+
+states.forEach(function (state) {
+  console.log("Processing state", state);
+  combineStateCDs(state);
+});
+
+console.log("Done processing State Congressional District regions");
