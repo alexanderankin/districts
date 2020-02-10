@@ -10,7 +10,7 @@ function reviver(field, value) {
     var oldvalue = value;
     value = [];
     for (var j = 0, k = 0; j < oldvalue.length; j++) {
-      if ((j + 1) % 8 == 0)
+      if ((j + 1) % 5 == 0)
         continue;
       value[k++] = oldvalue[j];
     }
