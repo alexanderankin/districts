@@ -11,4 +11,4 @@ for (var i = 0; i < folders.length; i++) {
   pa.features.push(contents);
 }
 
-fs.writeFileSync('PA.geojson', JSON.stringify(contents), 'utf8');
+fs.writeFileSync('PA.geojson', JSON.stringify(pa), 'utf8');
