@@ -10,7 +10,7 @@ function reviver(field, value) {
     var oldvalue = value;
     value = [];
     for (var j = 0, k = 0; j < oldvalue.length; j++) {
-      if ((j + 1) % 5 == 0)
+      if ((j + 1) % 2 == 0)
         continue;
       value[k++] = oldvalue[j];
     }
@@ -18,7 +18,7 @@ function reviver(field, value) {
 
   else if (Array.isArray(value) && value.length > 0 && !isNaN(value[0])) {
     for (var i = 0; i < value.length; i++) {
-      value[i] = new Number(parseFloat(value[i]).toFixed(5));
+      value[i] = new Number(parseFloat(value[i]).toFixed(4));
     }
   }
 
